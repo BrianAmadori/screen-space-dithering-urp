@@ -1,0 +1,23 @@
+{
+  "name": "com.brian.urp.dithering",
+  "version": "0.0.1",
+  "displayName": "URP Screen Space Dithering",
+  "description": "URP Screen Space Dithering",
+  "unity": "2020.3",
+  "unityRelease": "0b5",
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html",
+  "dependencies": {
+    "com.unity.render-pipelines.universal": "10.10.1",
+   },
+ "keywords": [
+    "dithering",
+    "vfx"
+  ],
+  "author": {
+    "name": "Brian Amadori",
+    "email": "amadoribrian@gmail.com",
+    "url": "twitter.com/BrianAmadori"
+  }
+}
