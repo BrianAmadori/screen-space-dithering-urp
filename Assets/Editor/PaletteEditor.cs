@@ -168,7 +168,7 @@ namespace Brian.Dithering
 					if (_autoGenerate)
 					{
 						GeneratePaletteTexture(CurrentPalette);
-						BrianDitherEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
+						DitheringEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
 						CurrentPalette.IsDirty = false;
 					}
 					else
@@ -229,7 +229,7 @@ namespace Brian.Dithering
 			if (GUILayout.Button(ContentText.generateFromListButton))
 			{
 				GeneratePaletteTexture(CurrentPalette);
-				BrianDitherEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
+				DitheringEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
 				CurrentPalette.IsDirty = false;
 			}
 
@@ -269,7 +269,7 @@ namespace Brian.Dithering
 				}
 
 				GeneratePaletteTexture(CurrentPalette);
-				BrianDitherEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
+				DitheringEditorUtilities.UpdateMaterialsForTexture(_palette.Texture);
 				CurrentPalette.IsDirty = false;
 			}
 		}
@@ -755,7 +755,7 @@ namespace Brian.Dithering
 
 			_loadPath = Path.GetDirectoryName(path);
 
-			return BrianDitherEditorUtilities.LoadTexture(path);
+			return DitheringEditorUtilities.LoadTexture(path);
 		}
 		#endregion
 

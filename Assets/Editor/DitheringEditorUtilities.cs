@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Brian.Dithering
 {
-	public static class BrianDitherEditorUtilities
+	public static class DitheringEditorUtilities
 	{
 		/* LOADING AND SAVING */
 		#region Loading and Saving

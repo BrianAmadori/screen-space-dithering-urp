@@ -1,6 +1,6 @@
 // Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Hidden/Dithering/Image Effect" 
+Shader "Hidden/Dithering/Dithering Image Effect" 
 {
 	Properties 
 	{
@@ -43,6 +43,10 @@ Shader "Hidden/Dithering/Image Effect"
 				float _PatternSize;
 				float _PatternScale;
 
+				half2 _Grain_Params1; // x: lum_contrib, y: intensity
+				half4 _Grain_Params2; // x: xscale, h: yscale, z: xoffset, w: yoffset
+				sampler2D _GrainTex;
+
 				struct VertexInput 
 				{
 					float4 position : POSITION;
@@ -57,6 +61,7 @@ Shader "Hidden/Dithering/Image Effect"
 				};
 
 				#include "Dithering Base.cginc"
+				#include "UnityGrain/GrainUtils.cginc"
 
 				Input vert(VertexInput i) 
 				{
@@ -67,11 +72,29 @@ Shader "Hidden/Dithering/Image Effect"
 					return o;
 				}
 
+				//
+				// Luminance (Rec.709 primaries according to ACES specs)
+				//
+				half AcesLuminance(half3 c)
+				{
+				    return dot(c, half3(0.2126, 0.7152, 0.0722));
+				}
+
 				fixed4 frag(Input i) : COLOR 
 				{
-					fixed4 c = tex2D(_MainTex, i.uv);
+					float4 c = tex2D(_MainTex, i.uv);
+					float4 grain = tex2D(_GrainTex, frac(i.uv * _Grain_Params2.xy + _Grain_Params2.zw));
+
+			        // Noisiness response curve based on scene luminance
+			        float lum = 1.0 - sqrt(AcesLuminance(c));
+			        lum = lerp(1.0, lum, _Grain_Params1.x);
+					grain *= lum * _Grain_Params1.y;
+
+			        c += c * grain;
+
 					return fixed4(GetDitherColor(c.rgb, _PatternTex, _PaletteTex, _PaletteHeight, i.ditherPos, _PaletteColorCount, _PatternScale), c.a);
 				}
+			
 			ENDCG
 		}
 	}

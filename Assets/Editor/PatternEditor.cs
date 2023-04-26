@@ -115,7 +115,7 @@ namespace Brian.Dithering
 					if (_autoGenerate)
 					{
 						Generate(CurrentPattern);
-						BrianDitherEditorUtilities.UpdateMaterialsForTexture(_pattern.Texture);
+						DitheringEditorUtilities.UpdateMaterialsForTexture(_pattern.Texture);
 						CurrentPattern.IsDirty = false;
 					}
 					else
@@ -293,7 +293,7 @@ namespace Brian.Dithering
 			if (GUILayout.Button(generateButton))
 			{
 				Generate(CurrentPattern);
-				BrianDitherEditorUtilities.UpdateMaterialsForTexture(_pattern.Texture);
+				DitheringEditorUtilities.UpdateMaterialsForTexture(_pattern.Texture);
 				CurrentPattern.IsDirty = false;
 			}
 		}
