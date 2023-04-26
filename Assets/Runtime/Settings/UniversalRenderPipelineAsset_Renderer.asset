@@ -14,45 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    palette: {fileID: 11400000, guid: 6566488ad63904d45a306859bc056a84, type: 2}
+    palette: {fileID: 11400000, guid: a8a784f17ae190e4e9de820ff253912a, type: 2}
     pattern: {fileID: 11400000, guid: 72328df5e1ea34645a7d06d5cb65a764, type: 2}
     patternTexture: {fileID: 0}
-    noiseTexture: {fileID: 2800000, guid: 7a632f967e8ad42f5bd275898151ab6a, type: 3}
-    grain:
-      m_Enabled: 1
-      m_Settings:
-        colored: 0
-        intensity: 0.077
-        size: 1
-        luminanceContribution: 0.394
-        animated: 0
---- !u!114 &-1657547092419630140
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9dea88b8bfbd93941b433ee338a4192d, type: 3}
-  m_Name: NewBlit
-  m_EditorClassIdentifier: 
-  m_Active: 0
-  settings:
-    Event: 500
-    blitMaterial: {fileID: 2100000, guid: 38bf86190359fac4d82e07380620b8d8, type: 2}
-    blitMaterialPassIndex: 0
-    setInverseViewMatrix: 0
-    requireDepthNormals: 0
-    srcType: 0
-    srcTextureId: 
-    srcTextureObject: {fileID: 0}
-    dstType: 0
-    dstTextureId: 
-    dstTextureObject: {fileID: 0}
-    overrideGraphicsFormat: 0
-    graphicsFormat: 8
+    grainColored: 0
+    grainIntensity: 0.364
+    grainSize: 1
+    grainLuminanceContribution: 1
+    grainAnimated: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66,9 +35,8 @@ MonoBehaviour:
   m_Name: UniversalRenderPipelineAsset_Renderer
   m_EditorClassIdentifier: 
   m_RendererFeatures:
-  - {fileID: -1657547092419630140}
   - {fileID: -5786512694108160043}
-  m_RendererFeatureMap: c4abd895b335ffe8d5ff64eb5c2db2af
+  m_RendererFeatureMap: d5ff64eb5c2db2af
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:

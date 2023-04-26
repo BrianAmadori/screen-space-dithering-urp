@@ -175,7 +175,7 @@ public class DitheringPass : ScriptableRenderPass
         }
 
          RenderTextureDescriptor lutDesc = new RenderTextureDescriptor(opaqueDesc.width, opaqueDesc.height, RenderTextureFormat.ARGBHalf, 0);
-         cmd.GetTemporaryRT(noiseLutTexture.id, lutDesc, FilterMode.Bilinear);
+         cmd.GetTemporaryRT(noiseLutTexture.id, lutDesc, FilterMode.Point);
          RenderTargetIdentifier lutDestinationTarget = new RenderTargetIdentifier(noiseLutTexture.id);
         
         noiseLutMaterial.SetFloat(_Phase, time / 20f);
