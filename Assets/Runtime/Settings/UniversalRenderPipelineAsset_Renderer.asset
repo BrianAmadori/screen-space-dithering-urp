@@ -12,16 +12,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde9eb4ee197e3f46b8761d0d7da4804, type: 3}
   m_Name: NewDitheringFeature
   m_EditorClassIdentifier: 
-  m_Active: 0
+  m_Active: 1
   settings:
-    palette: {fileID: 11400000, guid: a8a784f17ae190e4e9de820ff253912a, type: 2}
-    pattern: {fileID: 11400000, guid: 72328df5e1ea34645a7d06d5cb65a764, type: 2}
-    patternTexture: {fileID: 0}
-    grainColored: 0
-    grainIntensity: 0.364
-    grainSize: 1
-    grainLuminanceContribution: 1
-    grainAnimated: 0
+    Event: 1000
+    setInverseViewMatrix: 0
+    requireDepthNormals: 1
+    srcType: 1
+    srcTextureId: _AfterPostProcessTexture
+    srcTextureObject: {fileID: 0}
+    dstType: 1
+    dstTextureId: _AfterPostProcessTexture
+    dstTextureObject: {fileID: 0}
+    overrideGraphicsFormat: 1
+    graphicsFormat: 48
+    dithering:
+      palette: {fileID: 11400000, guid: a8a784f17ae190e4e9de820ff253912a, type: 2}
+      pattern: {fileID: 11400000, guid: 72328df5e1ea34645a7d06d5cb65a764, type: 2}
+      patternTexture: {fileID: 0}
+      grainColored: 0
+      grainIntensity: 0.244
+      grainSize: 1.15
+      grainLuminanceContribution: 0.543
+      grainAnimated: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

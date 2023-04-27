@@ -4,9 +4,14 @@ using UnityEngine.Rendering.Universal;
 
 public class DitheringPass : ScriptableRenderPass
 {
-    internal static readonly int _Grain_Params1 = Shader.PropertyToID("_Grain_Params1");
-    internal static readonly int _Grain_Params2 = Shader.PropertyToID("_Grain_Params2");
-    internal static readonly int _GrainTex      = Shader.PropertyToID("_GrainTex");
+    private static readonly int _Grain_Params1 = Shader.PropertyToID("_Grain_Params1");
+    private static readonly int _Grain_Params2 = Shader.PropertyToID("_Grain_Params2");
+    private static readonly int _GrainTex      = Shader.PropertyToID("_GrainTex");
+    private static readonly int _PatternTex = Shader.PropertyToID("_PatternTex");
+    private static readonly int _PatternSize = Shader.PropertyToID("_PatternSize");
+    private static readonly int _PaletteTex = Shader.PropertyToID("_PaletteTex");
+    private static readonly int _PaletteHeight = Shader.PropertyToID("_PaletteHeight");
+    private static readonly int _PaletteColorCount = Shader.PropertyToID("_PaletteColorCount");
 
     private Shader ditheringShader = null;
     private Material ditheringMaterial = null;
@@ -24,11 +29,6 @@ public class DitheringPass : ScriptableRenderPass
     RenderTargetHandle destinationTexture;
     RenderTargetHandle noiseLutTexture;
     string profilerTag;
-    private static readonly int PatternTex = Shader.PropertyToID("_PatternTex");
-    private static readonly int PatternSize = Shader.PropertyToID("_PatternSize");
-    private static readonly int PaletteTex = Shader.PropertyToID("_PaletteTex");
-    private static readonly int PaletteHeight = Shader.PropertyToID("_PaletteHeight");
-    private static readonly int PaletteColorCount = Shader.PropertyToID("_PaletteColorCount");
 
 #if !UNITY_2020_2_OR_NEWER // v8
 	private ScriptableRenderer renderer;
@@ -68,6 +68,12 @@ public class DitheringPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
+        if (settings == null || settings.dithering == null || settings.dithering.palette == null)
+        {
+            Debug.LogWarning("Bad settings for Dithering Pass!");
+            return;
+        }
+        
         CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
         RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
         Camera camera = renderingData.cameraData.camera;
@@ -126,44 +132,45 @@ public class DitheringPass : ScriptableRenderPass
         float rndOffsetX = 0;
         float rndOffsetY = 0;
 
-        if(settings.grainAnimated)
+        if(settings.dithering.grainAnimated)
         {
             rndOffsetX = Random.Range(0, 1f);
             rndOffsetY = Random.Range(0, 1f);
         }
 
-         RenderTextureDescriptor lutDesc = new RenderTextureDescriptor(192, 192, RenderTextureFormat.ARGBHalf, 0);
-         cmd.GetTemporaryRT(noiseLutTexture.id, lutDesc, FilterMode.Point);
-         RenderTargetIdentifier lutDestinationTarget = new RenderTargetIdentifier(noiseLutTexture.id);
+        RenderTextureDescriptor lutDesc = new RenderTextureDescriptor(192, 192, RenderTextureFormat.ARGBHalf, 0);
+        cmd.GetTemporaryRT(noiseLutTexture.id, lutDesc, FilterMode.Point);
+        RenderTargetIdentifier lutDestinationTarget = new RenderTargetIdentifier(noiseLutTexture.id);
         
         // Write over noise lut texture
         Blit(cmd, 
             new RenderTargetIdentifier(BuiltinRenderTextureType.None), 
             noiseLutTexture.Identifier(), 
             noiseLutMaterial, 
-            settings.grainColored ? 1 : 0);
+            settings.dithering.grainColored ? 1 : 0);
         
         cmd.SetGlobalTexture(_GrainTex, lutDestinationTarget);
         
         // Dithering Phase
-        Material blitMaterial = ditheringMaterial;
+        Material material = ditheringMaterial;
         
-        Texture2D patTex = (settings.pattern == null ? settings.patternTexture : settings.pattern.Texture);
+        Texture2D patTex = (settings.dithering.pattern == null ? settings.dithering.patternTexture : settings.dithering.pattern.Texture);
 
-        blitMaterial.SetFloat(PaletteColorCount, settings.palette.MixedColorCount);
-        blitMaterial.SetFloat(PaletteHeight, settings.palette.Texture.height);
-        blitMaterial.SetTexture(PaletteTex, settings.palette.Texture);
-        blitMaterial.SetFloat(PatternSize, patTex.width);
-        blitMaterial.SetTexture(PatternTex, patTex);
-        blitMaterial.SetVector(_Grain_Params1, new Vector2(settings.grainLuminanceContribution, settings.grainIntensity * 20f));
-        blitMaterial.SetVector(_Grain_Params2, new Vector4((float)opaqueDesc.width / (float)lutDesc.width / settings.grainSize, (float)opaqueDesc.height / (float)lutDesc.height / settings.grainSize, rndOffsetX, rndOffsetY));
+        material.SetFloat(_PaletteColorCount, settings.dithering.palette.MixedColorCount);
+        material.SetFloat(_PaletteHeight, settings.dithering.palette.Texture.height);
+        material.SetTexture(_PaletteTex, settings.dithering.palette.Texture);
+
+        material.SetFloat(_PatternSize, patTex.width);
+        material.SetTexture(_PatternTex, patTex);
+        material.SetVector(_Grain_Params1, new Vector2(settings.dithering.grainLuminanceContribution, settings.dithering.grainIntensity * 20f));
+        material.SetVector(_Grain_Params2, new Vector4((float)opaqueDesc.width / (float)lutDesc.width / settings.dithering.grainSize, (float)opaqueDesc.height / (float)lutDesc.height / settings.dithering.grainSize, rndOffsetX, rndOffsetY));
 
         // Write over temporary color texture with noise material
         cmd.GetTemporaryRT(temporaryColorTexture.id, opaqueDesc, filterMode);
         
         // Write over final destination with dithering material
         Blit(cmd, source, temporaryColorTexture.Identifier());
-        Blit(cmd, temporaryColorTexture.Identifier(), destination, blitMaterial, settings.blitMaterialPassIndex);
+        Blit(cmd, temporaryColorTexture.Identifier(), destination, material);
 
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
@@ -179,67 +186,4 @@ public class DitheringPass : ScriptableRenderPass
         cmd.ReleaseTemporaryRT(noiseLutTexture.id);
         cmd.ReleaseTemporaryRT(temporaryColorTexture.id);
     }
-    
-    /*
-     *
-     *
-     *   static class Uniforms
-        {
-            internal static readonly int _Grain_Params1 = Shader.PropertyToID("_Grain_Params1");
-            internal static readonly int _Grain_Params2 = Shader.PropertyToID("_Grain_Params2");
-            internal static readonly int _GrainTex      = Shader.PropertyToID("_GrainTex");
-            internal static readonly int _Phase         = Shader.PropertyToID("_Phase");
-        }
-     *
-     *  public void Prepare(Material uberMaterial, Material grainMaterial)
-        {
-            var settings = model.settings;
-
-            uberMaterial.EnableKeyword("GRAIN");
-
-            float rndOffsetX;
-            float rndOffsetY;
-            float time;
-
-            if(!model.settings.animated){
-                time = 4f;
-                rndOffsetX = 0f;
-                rndOffsetY = 0f;
-            }else{
-                time = Random.Range(0f,1f);
-                rndOffsetX = Random.Range(0f,1f);
-                rndOffsetY = Random.Range(0f,1f);
-            }
-
-
-            // Generate the grain lut for the current frame first
-            if (m_GrainLookupRT == null || !m_GrainLookupRT.IsCreated())
-            {
-                GU.Destroy(m_GrainLookupRT);
-
-                m_GrainLookupRT = new RenderTexture(192, 192, 0, RenderTextureFormat.ARGBHalf)
-                {
-                    filterMode = FilterMode.Bilinear,
-                    wrapMode = TextureWrapMode.Repeat,
-                    anisoLevel = 0,
-                    name = "Grain Lookup Texture"
-                };
-
-                m_GrainLookupRT.Create();
-            }
-
-            //var grainMaterial = context.materialFactory.Get("Hidden/Post FX/Grain Generator");
-            grainMaterial.SetFloat(Uniforms._Phase, time / 20f);
-
-            Graphics.Blit((Texture)null, m_GrainLookupRT, grainMaterial, settings.colored ? 1 : 0);
-
-            // Send everything to the uber shader
-            uberMaterial.SetTexture(Uniforms._GrainTex, m_GrainLookupRT);
-            uberMaterial.SetVector(Uniforms._Grain_Params1, new Vector2(settings.luminanceContribution, settings.intensity * 20f));
-            uberMaterial.SetVector(Uniforms._Grain_Params2, new Vector4((float)context.width / (float)m_GrainLookupRT.width / settings.size, (float)context.height / (float)m_GrainLookupRT.height / settings.size, rndOffsetX, rndOffsetY));
-        }
-
-     *
-     * 
-     */
 }

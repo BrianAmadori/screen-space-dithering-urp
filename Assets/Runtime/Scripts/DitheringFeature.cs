@@ -8,43 +8,46 @@ public class DitheringFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Settings
     {
-        [NonSerialized] public RenderPassEvent Event = RenderPassEvent.AfterRendering;
+        [System.Serializable]
+        public class Dithering
+        {
+            [Header("Dithering")]
+            public Palette palette;
+            public Pattern pattern;
+            public Texture2D patternTexture;
 
-        [NonSerialized] public Material blitMaterial = null;
-        [NonSerialized] public int blitMaterialPassIndex = 0;
-        [NonSerialized] public bool setInverseViewMatrix = false;
-        [NonSerialized] public bool requireDepthNormals = false;
+            [Header("Grain")] 
+            public bool grainColored;
 
-        [NonSerialized] public Target srcType = Target.CameraColor;
-        [NonSerialized] public string srcTextureId = "_CameraColorTexture";
-        [NonSerialized] public RenderTexture srcTextureObject;
+            [Range(0f, 1f), Tooltip("Grain strength. Higher means more visible grain.")]
+            public float grainIntensity;
 
-        [NonSerialized] public Target dstType = Target.CameraColor;
-        [NonSerialized] public string dstTextureId = "_BlitPassTexture";
-        [NonSerialized] public RenderTexture dstTextureObject;
+            [Range(0.3f, 3f), Tooltip("Grain particle size.")]
+            public float grainSize;
 
-        [NonSerialized] public bool overrideGraphicsFormat = false;
-        [NonSerialized] public UnityEngine.Experimental.Rendering.GraphicsFormat graphicsFormat;
-        
-        [Header("Dithering")]
-        public Palette palette;
-        public Pattern pattern;
-        public Texture2D patternTexture;
+            [Range(0f, 1f), Tooltip("Controls the noisiness response curve based on scene luminance. Lower values mean less noise in dark areas.")]
+            public float grainLuminanceContribution;
 
-        [Header("Grain")] 
-        public bool grainColored;
+            [Tooltip("Is the grain static or animated.")]
+            public bool grainAnimated;
+        }
 
-        [Range(0f, 1f), Tooltip("Grain strength. Higher means more visible grain.")]
-        public float grainIntensity;
+        public RenderPassEvent Event = RenderPassEvent.AfterRendering;
+        public bool setInverseViewMatrix = false;
+        public bool requireDepthNormals = false;
 
-        [Range(0.3f, 3f), Tooltip("Grain particle size.")]
-        public float grainSize;
+        public Target srcType = Target.CameraColor;
+        public string srcTextureId = "_CameraColorTexture";
+        public RenderTexture srcTextureObject;
 
-        [Range(0f, 1f), Tooltip("Controls the noisiness response curve based on scene luminance. Lower values mean less noise in dark areas.")]
-        public float grainLuminanceContribution;
+        public Target dstType = Target.CameraColor;
+        public string dstTextureId = "_BlitPassTexture";
+        public RenderTexture dstTextureObject;
 
-        [Tooltip("Is the grain static or animated.")]
-        public bool grainAnimated;
+        public bool overrideGraphicsFormat = false;
+        public UnityEngine.Experimental.Rendering.GraphicsFormat graphicsFormat;
+
+        public Dithering dithering = new Dithering();
     }
 
     public enum Target
@@ -59,8 +62,6 @@ public class DitheringFeature : ScriptableRendererFeature
 
     public override void Create()
     {
-        var passIndex = settings.blitMaterial != null ? settings.blitMaterial.passCount - 1 : 1;
-        settings.blitMaterialPassIndex = Mathf.Clamp(settings.blitMaterialPassIndex, -1, passIndex);
         ditheringPass = new DitheringPass(settings.Event, settings, name);
 
 #if !UNITY_2021_2_OR_NEWER
