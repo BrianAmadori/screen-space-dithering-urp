@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Brian.Dithering;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -68,15 +69,27 @@ public class DitheringPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
-        if (settings == null || settings.dithering == null || settings.dithering.palette == null)
+        if (settings == null)
         {
             Debug.LogWarning("Bad settings for Dithering Pass!");
             return;
         }
-        
+
+        Dithering ditheringSettings = renderingData.cameraData.camera.GetComponent<Dithering>();
+
+        if (ditheringSettings == null || !ditheringSettings.enabled)
+            return;
+
+        //Debug.Log($"renderingData.cameraData.camera = {renderingData.cameraData.camera}");
+
+        Pattern pattern = ditheringSettings.pattern;
+        Palette palette = ditheringSettings.palette;
+
+        if (palette == null)
+            return;
+
         CommandBuffer cmd = CommandBufferPool.Get(profilerTag);
         RenderTextureDescriptor opaqueDesc = renderingData.cameraData.cameraTargetDescriptor;
-        Camera camera = renderingData.cameraData.camera;
         opaqueDesc.depthBufferBits = 0;
 
         // Set Source / Destination
@@ -132,7 +145,7 @@ public class DitheringPass : ScriptableRenderPass
         float rndOffsetX = 0;
         float rndOffsetY = 0;
 
-        if(settings.dithering.grainAnimated)
+        if(ditheringSettings.grainAnimated)
         {
             rndOffsetX = Random.Range(0, 1f);
             rndOffsetY = Random.Range(0, 1f);
@@ -147,23 +160,26 @@ public class DitheringPass : ScriptableRenderPass
             new RenderTargetIdentifier(BuiltinRenderTextureType.None), 
             noiseLutTexture.Identifier(), 
             noiseLutMaterial, 
-            settings.dithering.grainColored ? 1 : 0);
+            ditheringSettings.grainColored ? 1 : 0);
         
         cmd.SetGlobalTexture(_GrainTex, lutDestinationTarget);
         
         // Dithering Phase
         Material material = ditheringMaterial;
-        
-        Texture2D patTex = (settings.dithering.pattern == null ? settings.dithering.patternTexture : settings.dithering.pattern.Texture);
 
-        material.SetFloat(_PaletteColorCount, settings.dithering.palette.MixedColorCount);
-        material.SetFloat(_PaletteHeight, settings.dithering.palette.Texture.height);
-        material.SetTexture(_PaletteTex, settings.dithering.palette.Texture);
+        if (ditheringSettings.patternTexture == null)
+            ditheringSettings.patternTexture = Texture2D.whiteTexture;
+        
+        Texture2D patTex = (pattern == null ? (Texture2D)ditheringSettings.patternTexture : pattern.Texture);
+
+        material.SetFloat(_PaletteColorCount, palette.MixedColorCount);
+        material.SetFloat(_PaletteHeight, palette.Texture.height);
+        material.SetTexture(_PaletteTex, palette.Texture);
 
         material.SetFloat(_PatternSize, patTex.width);
         material.SetTexture(_PatternTex, patTex);
-        material.SetVector(_Grain_Params1, new Vector2(settings.dithering.grainLuminanceContribution, settings.dithering.grainIntensity * 20f));
-        material.SetVector(_Grain_Params2, new Vector4((float)opaqueDesc.width / (float)lutDesc.width / settings.dithering.grainSize, (float)opaqueDesc.height / (float)lutDesc.height / settings.dithering.grainSize, rndOffsetX, rndOffsetY));
+        material.SetVector(_Grain_Params1, new Vector2(ditheringSettings.grainLuminanceContribution, ditheringSettings.grainIntensity * 20f));
+        material.SetVector(_Grain_Params2, new Vector4((float)opaqueDesc.width / (float)lutDesc.width / ditheringSettings.grainSize, (float)opaqueDesc.height / (float)lutDesc.height / ditheringSettings.grainSize, rndOffsetX, rndOffsetY));
 
         // Write over temporary color texture with noise material
         cmd.GetTemporaryRT(temporaryColorTexture.id, opaqueDesc, filterMode);

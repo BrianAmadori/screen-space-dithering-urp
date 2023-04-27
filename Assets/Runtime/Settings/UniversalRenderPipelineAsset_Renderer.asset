@@ -14,26 +14,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   settings:
-    Event: 1000
+    Event: 600
     setInverseViewMatrix: 0
     requireDepthNormals: 1
-    srcType: 1
+    srcType: 0
     srcTextureId: _AfterPostProcessTexture
     srcTextureObject: {fileID: 0}
-    dstType: 1
+    dstType: 0
     dstTextureId: _AfterPostProcessTexture
     dstTextureObject: {fileID: 0}
     overrideGraphicsFormat: 1
     graphicsFormat: 48
-    dithering:
-      palette: {fileID: 11400000, guid: a8a784f17ae190e4e9de820ff253912a, type: 2}
-      pattern: {fileID: 11400000, guid: 72328df5e1ea34645a7d06d5cb65a764, type: 2}
-      patternTexture: {fileID: 0}
-      grainColored: 0
-      grainIntensity: 0.244
-      grainSize: 1.15
-      grainLuminanceContribution: 0.543
-      grainAnimated: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

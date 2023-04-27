@@ -82,6 +82,27 @@ MonoBehaviour:
   - {fileID: 2662549904896355423}
   - {fileID: 6929027748535221658}
   - {fileID: 6807208220894619377}
+--- !u!114 &242663389073738787
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 110bc6bd37914b6aa9d66257c0a7393f, type: 3}
+  m_Name: Dithering
+  m_EditorClassIdentifier: 
+  enabled: 0
+  palette: {fileID: 0}
+  pattern: {fileID: 0}
+  patternTexture: {fileID: 0}
+  grainColored: 0
+  grainIntensity: 0
+  grainSize: 0
+  grainLuminanceContribution: 0
+  grainAnimated: 0
 --- !u!114 &2662549904896355423
 MonoBehaviour:
   m_ObjectHideFlags: 3
