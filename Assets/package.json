@@ -9,7 +9,7 @@
   "changelogUrl": "https://example.com/changelog.html",
   "licensesUrl": "https://example.com/licensing.html",
   "dependencies": {
-    "com.unity.render-pipelines.universal": "10.10.1",
+    "com.unity.render-pipelines.universal": "10.10.1"
    },
  "keywords": [
     "dithering",
