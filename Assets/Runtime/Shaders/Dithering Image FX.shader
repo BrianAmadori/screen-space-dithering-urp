@@ -61,7 +61,7 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				};
 
 				#include "Dithering Base.cginc"
-				#include "UnityGrain/GrainUtils.cginc"
+				#include "GrainUtils.cginc"
 
 				Input vert(VertexInput i) 
 				{
