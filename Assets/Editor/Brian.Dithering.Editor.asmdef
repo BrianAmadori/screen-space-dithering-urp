@@ -1,0 +1,19 @@
+{
+    "name": "Brian.Dithering.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c579267770062bf448e75eb160330b7f",
+        "GUID:fd2304514fdfdc247bf689e169592d5a"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
