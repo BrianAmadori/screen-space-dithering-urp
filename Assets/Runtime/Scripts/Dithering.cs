@@ -9,6 +9,9 @@ public class Dithering : MonoBehaviour
 {
     public bool enabled = false;
 
+    [Range(0f, 5f), Tooltip("Source color multiplier")]
+    public float sourceGain = 2.0f;
+
     public Palette palette = null;
     public Pattern pattern = null;
     public Texture2D patternTexture = null;

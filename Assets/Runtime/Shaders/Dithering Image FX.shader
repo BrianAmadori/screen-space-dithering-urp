@@ -20,6 +20,7 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 			"IgnoreProjector"="True" 
 			"RenderType"="Opaque" 
 		}
+		
 		LOD 200
 
 		Lighting Off
@@ -38,6 +39,7 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				sampler2D _PaletteTex;
 				sampler2D _PatternTex;
 
+				float _SourceGain;
 				float _PaletteColorCount;
 				float _PaletteHeight;
 				float _PatternSize;
@@ -82,7 +84,7 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 
 				fixed4 frag(Input i) : COLOR 
 				{
-					float4 c = tex2D(_MainTex, i.uv);
+					float4 c = tex2D(_MainTex, i.uv) * _SourceGain;
 					float4 grain = tex2D(_GrainTex, frac(i.uv * _Grain_Params2.xy + _Grain_Params2.zw));
 
 			        // Noisiness response curve based on scene luminance
