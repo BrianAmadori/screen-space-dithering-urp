@@ -13,7 +13,6 @@ public class DitheringPass : ScriptableRenderPass
     private static readonly int _PaletteTex = Shader.PropertyToID("_PaletteTex");
     private static readonly int _PaletteHeight = Shader.PropertyToID("_PaletteHeight");
     private static readonly int _PaletteColorCount = Shader.PropertyToID("_PaletteColorCount");
-    private static readonly int _SourceGain = Shader.PropertyToID("_SourceGain");
     private static readonly int _InverseView = Shader.PropertyToID("_InverseView");
 
     private Shader ditheringShader = null;
@@ -171,8 +170,6 @@ public class DitheringPass : ScriptableRenderPass
             ditheringSettings.patternTexture = Texture2D.whiteTexture;
         
         Texture2D patTex = (pattern == null ? (Texture2D)ditheringSettings.patternTexture : pattern.Texture);
-
-        material.SetFloat(_SourceGain, ditheringSettings.sourceGain);
 
         material.SetFloat(_PaletteColorCount, palette.MixedColorCount);
         material.SetFloat(_PaletteHeight, palette.Texture.height);

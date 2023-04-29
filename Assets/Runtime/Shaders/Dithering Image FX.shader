@@ -39,7 +39,6 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				sampler2D _PaletteTex;
 				sampler2D _PatternTex;
 
-				float _SourceGain;
 				float _PaletteColorCount;
 				float _PaletteHeight;
 				float _PatternSize;
@@ -84,10 +83,14 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 
 				fixed4 frag(Input i) : COLOR 
 				{
-					float4 c = tex2D(_MainTex, i.uv) * _SourceGain;
+				
+					float4 c = tex2D(_MainTex, i.uv);
 					float4 grain = tex2D(_GrainTex, frac(i.uv * _Grain_Params2.xy + _Grain_Params2.zw));
 
-			        // Noisiness response curve based on scene luminance
+					#ifndef UNITY_COLORSPACE_GAMMA
+					c = pow(c, 0.454545);				
+					#endif
+					// Noisiness response curve based on scene luminance
 			        float lum = 1.0 - sqrt(AcesLuminance(c));
 			        lum = lerp(1.0, lum, _Grain_Params1.x);
 					grain *= lum * _Grain_Params1.y;
