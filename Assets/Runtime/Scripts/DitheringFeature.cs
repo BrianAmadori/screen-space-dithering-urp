@@ -8,17 +8,18 @@ public class DitheringFeature : ScriptableRendererFeature
     [System.Serializable]
     public class Settings
     {
-        public RenderPassEvent Event = RenderPassEvent.AfterRendering;
         public bool setInverseViewMatrix = false;
         public bool requireDepthNormals = false;
 
-        public Target srcType = Target.CameraColor;
-        public string srcTextureId = "_CameraColorTexture";
-        public RenderTexture srcTextureObject;
+        [NonSerialized] public RenderPassEvent Event = RenderPassEvent.AfterRendering;
 
-        public Target dstType = Target.CameraColor;
-        public string dstTextureId = "_BlitPassTexture";
-        public RenderTexture dstTextureObject;
+        [NonSerialized] public Target srcType = Target.CameraColor;
+        [NonSerialized] public string srcTextureId = "_CameraColorTexture";
+        [NonSerialized] public RenderTexture srcTextureObject;
+
+        [NonSerialized] public Target dstType = Target.CameraColor;
+        [NonSerialized] public string dstTextureId = "_BlitPassTexture";
+        [NonSerialized] public RenderTexture dstTextureObject;
 
         public bool overrideGraphicsFormat = false;
         public UnityEngine.Experimental.Rendering.GraphicsFormat graphicsFormat;
@@ -55,6 +56,15 @@ public class DitheringFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        if (Application.isPlaying)
+        {
+            settings.Event = RenderPassEvent.AfterRenderingPostProcessing;
+        }
+        else
+        {
+            settings.Event = RenderPassEvent.AfterRendering;
+        }
+
 #if !UNITY_2021_2_OR_NEWER
         // AfterRenderingPostProcessing event is fixed in 2021.2+ so this workaround is no longer required
         if (settings.Event == RenderPassEvent.AfterRenderingPostProcessing)
