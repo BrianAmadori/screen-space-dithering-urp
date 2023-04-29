@@ -345,37 +345,30 @@ namespace Brian.Dithering
 			if (colorTexture == null) 
 				return;
 
-			// Remove all previous colors
-			CurrentPalette.Colors.Clear();
-			
+			List<Color> colorList = new List<Color>();
+
 			// Create a list of all the unique colors in the color image
-			bool proceed = false;
-			Color color;
 			for (int x = 0; x < colorTexture.width; x++)
 			{
 				for (int y = 0; y < colorTexture.height; y++)
 				{
-					color = colorTexture.GetPixel(x, y);
-					if (!CurrentPalette.Colors.Contains(color)) // Check if color isn't already in the list
+					Color color = colorTexture.GetPixel(x, y);
+					colorList.Add(color);
+					if (colorList.Count > _maxColors) // Check if list size doesn't exceed maximum amount
 					{
-						CurrentPalette.Colors.Add(color);
-						if (!proceed && CurrentPalette.Colors.Count > _maxColors) // Check if list size doesn't exceed maximum amount
-						{
-							proceed = EditorUtility.DisplayDialog(
-								ContentText.tooManyColorsDialogTitle, 
-								string.Format(ContentText.tooManyColorsDialogText, _maxColors),
-								ContentText.tooManyColorsDialogContinueButton,
-								ContentText.tooManyColorsDialogStopButton);
-							
-							if (!proceed)
-							{
-								return;
-							}
-						}
+						bool proceed = EditorUtility.DisplayDialog(
+							ContentText.tooManyColorsDialogTitle, 
+							string.Format(ContentText.tooManyColorsDialogText, _maxColors),
+							ContentText.tooManyColorsDialogContinueButton,
+							ContentText.tooManyColorsDialogStopButton);
+						
+						if (!proceed)
+							return;
 					}
 				}
 			}
 
+			CurrentPalette.Colors = colorList;
 			EditorUtility.SetDirty(CurrentPalette);
 		}
 		#endregion
@@ -436,7 +429,6 @@ namespace Brian.Dithering
 
 				AssetDatabase.AddObjectToAsset(palette.Texture, palette);
 				AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(palette.Texture));
-
 			}
 			else if (palette.Texture.height != height)
 			{
