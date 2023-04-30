@@ -56,49 +56,24 @@ public class DitheringFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
-        if (Application.isPlaying)
-        {
-            settings.Event = RenderPassEvent.AfterRenderingPostProcessing;
-        }
-        else
-        {
-            settings.Event = RenderPassEvent.AfterRendering;
-        }
-
 #if !UNITY_2021_2_OR_NEWER
         // AfterRenderingPostProcessing event is fixed in 2021.2+ so this workaround is no longer required
-        if (settings.Event == RenderPassEvent.AfterRenderingPostProcessing)
+        if (settings.Event == RenderPassEvent.AfterRenderingPostProcessing ||
+            (settings.Event == RenderPassEvent.AfterRendering && renderingData.postProcessingEnabled))
         {
-        }
-        else if (settings.Event == RenderPassEvent.AfterRendering && renderingData.postProcessingEnabled)
-        {
-            // If event is AfterRendering, and src/dst is using CameraColor, switch to _AfterPostProcessTexture instead.
-            if (settings.srcType == Target.CameraColor)
-            {
-                settings.srcType = Target.TextureID;
-                settings.srcTextureId = "_AfterPostProcessTexture";
-            }
+            settings.srcType = Target.TextureID;
+            settings.srcTextureId = "_AfterPostProcessTexture";
 
-            if (settings.dstType == Target.CameraColor)
-            {
-                settings.dstType = Target.TextureID;
-                settings.dstTextureId = "_AfterPostProcessTexture";
-            }
+            settings.dstType = Target.TextureID;
+            settings.dstTextureId = "_AfterPostProcessTexture";
         }
         else
         {
-            // If src/dst is using _AfterPostProcessTexture, switch back to CameraColor
-            if (settings.srcType == Target.TextureID && settings.srcTextureId == "_AfterPostProcessTexture")
-            {
-                settings.srcType = Target.CameraColor;
-                settings.srcTextureId = "";
-            }
+            settings.srcType = Target.CameraColor;
+            settings.srcTextureId = "";
 
-            if (settings.dstType == Target.TextureID && settings.dstTextureId == "_AfterPostProcessTexture")
-            {
-                settings.dstType = Target.CameraColor;
-                settings.dstTextureId = "";
-            }
+            settings.dstType = Target.CameraColor;
+            settings.dstTextureId = "";
         }
 #endif
 
