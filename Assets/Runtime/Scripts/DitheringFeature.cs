@@ -11,7 +11,7 @@ public class DitheringFeature : ScriptableRendererFeature
         public bool setInverseViewMatrix = false;
         public bool requireDepthNormals = false;
 
-        [NonSerialized] public RenderPassEvent Event = RenderPassEvent.AfterRendering;
+        [NonSerialized] public RenderPassEvent Event = RenderPassEvent.AfterRenderingPostProcessing;
 
         [NonSerialized] public Target srcType = Target.CameraColor;
         [NonSerialized] public string srcTextureId = "_CameraColorTexture";
@@ -56,24 +56,25 @@ public class DitheringFeature : ScriptableRendererFeature
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
+        bool isOverlayCamera = renderingData.cameraData.renderType == CameraRenderType.Overlay;
+
 #if !UNITY_2021_2_OR_NEWER
         // AfterRenderingPostProcessing event is fixed in 2021.2+ so this workaround is no longer required
-        if (settings.Event == RenderPassEvent.AfterRenderingPostProcessing ||
-            (settings.Event == RenderPassEvent.AfterRendering && renderingData.postProcessingEnabled))
-        {
-            settings.srcType = Target.TextureID;
-            settings.srcTextureId = "_AfterPostProcessTexture";
-
-            settings.dstType = Target.TextureID;
-            settings.dstTextureId = "_AfterPostProcessTexture";
-        }
-        else
+        if (isOverlayCamera)
         {
             settings.srcType = Target.CameraColor;
             settings.srcTextureId = "";
 
             settings.dstType = Target.CameraColor;
             settings.dstTextureId = "";
+        }
+        else
+        {
+            settings.srcType = Target.TextureID;
+            settings.srcTextureId = "_AfterPostProcessTexture";
+
+            settings.dstType = Target.TextureID;
+            settings.dstTextureId = "_AfterPostProcessTexture";
         }
 #endif
 
