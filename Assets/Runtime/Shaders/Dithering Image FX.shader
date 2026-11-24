@@ -50,8 +50,8 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				sampler2D _GrainTex;
 
 				float4 _GrainScreenSize;            // xy: render target size in pixels
-				float2 _GrainTurnShift;             // how far camera turns moved the image, in pixels
-				float2 _GrainSlideShiftAtOneMeter;  // how far camera slides moved a point 1 m away, in pixels
+				float2 _GrainRotationOffset;            // how far camera rotation moved the image, in pixels
+				float2 _GrainPositionOffsetAtOneMeter;  // how far camera position changes moved a point 1 m away, in pixels
 
 				struct VertexInput 
 				{
@@ -84,9 +84,9 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 					float2 pixel = uv * _GrainScreenSize.xy;
 
 					#if DITHERING_GRAIN_FOLLOWS_CAMERA
-					// A turn moves every pixel alike. A slide moves each pixel by its own depth, so near things move more.
+					// Rotation moves every pixel alike. A position change moves each pixel by its own depth, so near things move more.
 					float depth = max(LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv)), _ProjectionParams.y);
-					pixel -= _GrainTurnShift + _GrainSlideShiftAtOneMeter / depth;
+					pixel -= _GrainRotationOffset + _GrainPositionOffsetAtOneMeter / depth;
 					#endif
 
 					// Whole pixels keep every grain cell exactly grainSize pixels wide. The +0.5 samples texel centers,

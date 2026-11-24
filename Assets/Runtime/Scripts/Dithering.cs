@@ -29,14 +29,14 @@ public class Dithering : MonoBehaviour
     public bool grainAnimated = false;
 
     [Header("Grain motion")]
-    [Tooltip("Moves the grain with the image when the camera turns or slides. Off keeps the grain fixed on the screen.")]
+    [Tooltip("Moves the grain with the image when the camera rotates or moves. Off keeps the grain fixed on the screen.")]
     public bool grainFollowsCamera = true;
 
     /// <summary>Totals this camera's image motion, so the grain can travel with the image.</summary>
-    public readonly GrainShiftTracker grainShift = new GrainShiftTracker();
+    public readonly GrainOffsetTracker grainOffset = new GrainOffsetTracker();
 
     private void OnEnable()
     {
-        grainShift.Forget();
+        grainOffset.Forget();
     }
 }

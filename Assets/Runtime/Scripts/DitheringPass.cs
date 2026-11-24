@@ -15,8 +15,8 @@ public class DitheringPass : ScriptableRenderPass
     private static readonly int _PaletteColorCount = Shader.PropertyToID("_PaletteColorCount");
     private static readonly int _InverseView = Shader.PropertyToID("_InverseView");
     private static readonly int _GrainScreenSize = Shader.PropertyToID("_GrainScreenSize");
-    private static readonly int _GrainTurnShift = Shader.PropertyToID("_GrainTurnShift");
-    private static readonly int _GrainSlideShiftAtOneMeter = Shader.PropertyToID("_GrainSlideShiftAtOneMeter");
+    private static readonly int _GrainRotationOffset = Shader.PropertyToID("_GrainRotationOffset");
+    private static readonly int _GrainPositionOffsetAtOneMeter = Shader.PropertyToID("_GrainPositionOffsetAtOneMeter");
 
     private const string GrainFollowsCameraKeyword = "DITHERING_GRAIN_FOLLOWS_CAMERA";
 
@@ -202,13 +202,13 @@ public class DitheringPass : ScriptableRenderPass
         {
             Camera camera = renderingData.cameraData.camera;
             Transform cameraTransform = camera.transform;
-            GrainShiftTracker grainShift = ditheringSettings.grainShift;
+            GrainOffsetTracker grainOffset = ditheringSettings.grainOffset;
 
-            grainShift.Advance(cameraTransform.position, cameraTransform.rotation, camera.fieldOfView, opaqueDesc.height);
+            grainOffset.Advance(cameraTransform.position, cameraTransform.rotation, camera.fieldOfView, opaqueDesc.height);
 
             cmd.EnableShaderKeyword(GrainFollowsCameraKeyword);
-            cmd.SetGlobalVector(_GrainTurnShift, grainShift.turnShift);
-            cmd.SetGlobalVector(_GrainSlideShiftAtOneMeter, grainShift.slideShiftAtOneMeter);
+            cmd.SetGlobalVector(_GrainRotationOffset, grainOffset.rotationOffset);
+            cmd.SetGlobalVector(_GrainPositionOffsetAtOneMeter, grainOffset.positionOffsetAtOneMeter);
         }
         else
         {
