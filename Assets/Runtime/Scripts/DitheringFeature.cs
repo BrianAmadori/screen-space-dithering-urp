@@ -78,7 +78,10 @@ public class DitheringFeature : ScriptableRendererFeature
         }
 #endif
 
-        ditheringPass.Setup(renderer);
+        Dithering dithering = renderingData.cameraData.camera.GetComponent<Dithering>();
+        bool needsDepth = dithering != null && dithering.enabled && dithering.grainFollowsCamera;
+
+        ditheringPass.Setup(renderer, needsDepth);
         renderer.EnqueuePass(ditheringPass);
     }
 }

@@ -34,6 +34,7 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 			CGPROGRAM
 				#pragma vertex vert
 				#pragma fragment frag
+				#pragma multi_compile __ DITHERING_GRAIN_FOLLOWS_CAMERA
 
 				sampler2D _MainTex;
 				sampler2D _PaletteTex;
@@ -48,6 +49,10 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				half4 _Grain_Params2; // x: xscale, h: yscale, z: xoffset, w: yoffset
 				sampler2D _GrainTex;
 
+				float4 _GrainScreenSize;            // xy: render target size in pixels
+				float2 _GrainTurnShift;             // how far camera turns moved the image, in pixels
+				float2 _GrainSlideShiftAtOneMeter;  // how far camera slides moved a point 1 m away, in pixels
+
 				struct VertexInput 
 				{
 					float4 position : POSITION;
@@ -58,19 +63,35 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				{
 					float4 position : SV_POSITION;
 					float2 uv : TEXCOORD0;
-					float4 ditherPos : TEXCOORD1;
 				};
 
 				#include "Dithering Base.cginc"
 				#include "GrainUtils.cginc"
+
+				UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
 				Input vert(VertexInput i) 
 				{
 					Input o;
 					o.position = UnityObjectToClipPos(i.position);
 					o.uv = i.uv;
-					o.ditherPos = GetDitherPos(i.position, _PatternSize);
 					return o;
+				}
+
+				// The center of the grain and pattern pixel that this screen pixel shows.
+				float2 GetGrainPixelCenter(float2 uv)
+				{
+					float2 pixel = uv * _GrainScreenSize.xy;
+
+					#if DITHERING_GRAIN_FOLLOWS_CAMERA
+					// A turn moves every pixel alike. A slide moves each pixel by its own depth, so near things move more.
+					float depth = max(LinearEyeDepth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, uv)), _ProjectionParams.y);
+					pixel -= _GrainTurnShift + _GrainSlideShiftAtOneMeter / depth;
+					#endif
+
+					// Whole pixels keep every grain cell exactly grainSize pixels wide. The +0.5 samples texel centers,
+					// because a sample on a texel edge lets the GPU pick either neighbor.
+					return floor(pixel) + 0.5;
 				}
 
 				//
@@ -85,7 +106,8 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 				{
 				
 					float4 c = tex2D(_MainTex, i.uv);
-					float4 grain = tex2D(_GrainTex, frac(i.uv * _Grain_Params2.xy + _Grain_Params2.zw));
+					float2 grainPixel = GetGrainPixelCenter(i.uv);
+					float4 grain = tex2D(_GrainTex, frac(grainPixel / _GrainScreenSize.xy * _Grain_Params2.xy + _Grain_Params2.zw));
 
 					#ifndef UNITY_COLORSPACE_GAMMA
 					c = pow(c, 0.454545);				
@@ -97,7 +119,8 @@ Shader "Hidden/Dithering/Dithering Image Effect"
 
 			        c += c * grain;
 
-					return fixed4(GetDitherColor(c.rgb, _PatternTex, _PaletteTex, _PaletteHeight, i.ditherPos, _PaletteColorCount, _PatternScale), c.a);
+					float4 ditherPos = float4(grainPixel / _PatternSize, 0, 1);
+					return fixed4(GetDitherColor(c.rgb, _PatternTex, _PaletteTex, _PaletteHeight, ditherPos, _PaletteColorCount, _PatternScale), c.a);
 				}
 			
 			ENDCG
