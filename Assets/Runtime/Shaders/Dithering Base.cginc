@@ -5,13 +5,6 @@
 
 #include "UnityCG.cginc"
 
-inline float4 GetDitherPos(float4 vertex, float ditherSize) 
-{
-	// Get the dither pixel position from the screen coordinates.
-	float4 screenPos = ComputeScreenPos(UnityObjectToClipPos(vertex));
-	return float4(screenPos.xy * _ScreenParams.xy / ditherSize, 0, screenPos.w);
-}
-
 inline fixed3 GetDitherColor(fixed3 color, sampler2D ditherTex, sampler2D paletteTex,
 							 float paletteHeight, float4 ditherPos, float colorCount, float patternScale) 
 {

@@ -14,6 +14,11 @@ public class DitheringPass : ScriptableRenderPass
     private static readonly int _PaletteHeight = Shader.PropertyToID("_PaletteHeight");
     private static readonly int _PaletteColorCount = Shader.PropertyToID("_PaletteColorCount");
     private static readonly int _InverseView = Shader.PropertyToID("_InverseView");
+    private static readonly int _GrainScreenSize = Shader.PropertyToID("_GrainScreenSize");
+    private static readonly int _GrainRotationOffset = Shader.PropertyToID("_GrainRotationOffset");
+    private static readonly int _GrainPositionOffsetAtOneMeter = Shader.PropertyToID("_GrainPositionOffsetAtOneMeter");
+
+    private const string GrainFollowsCameraKeyword = "DITHERING_GRAIN_FOLLOWS_CAMERA";
 
     private Shader ditheringShader = null;
     private Material ditheringMaterial = null;
@@ -58,11 +63,20 @@ public class DitheringPass : ScriptableRenderPass
         }
     }
 
-    public void Setup(ScriptableRenderer renderer)
+    /// <summary>Prepares the pass for one camera.</summary>
+    /// <param name="needsDepth">Whether the camera's grain follows the camera, which reads the depth texture.</param>
+    public void Setup(ScriptableRenderer renderer, bool needsDepth)
     {
 #if UNITY_2020_2_OR_NEWER // v10+
+        ScriptableRenderPassInput input = ScriptableRenderPassInput.None;
+
         if (settings.requireDepthNormals)
-            ConfigureInput(ScriptableRenderPassInput.Normal);
+            input |= ScriptableRenderPassInput.Normal;
+
+        if (needsDepth)
+            input |= ScriptableRenderPassInput.Depth;
+
+        ConfigureInput(input);
 #else // v8
 		this.renderer = renderer;
 #endif
@@ -150,15 +164,15 @@ public class DitheringPass : ScriptableRenderPass
             rndOffsetY = Random.Range(0, 1f);
         }
 
-        RenderTextureDescriptor lutDesc = new RenderTextureDescriptor(192, 192, RenderTextureFormat.ARGBHalf, 0);
+        RenderTextureDescriptor lutDesc = new RenderTextureDescriptor(512, 512, RenderTextureFormat.ARGBHalf, 0);
         cmd.GetTemporaryRT(noiseLutTexture.id, lutDesc, FilterMode.Point);
         RenderTargetIdentifier lutDestinationTarget = new RenderTargetIdentifier(noiseLutTexture.id);
         
         // Write over noise lut texture
-        Blit(cmd, 
-            new RenderTargetIdentifier(BuiltinRenderTextureType.None), 
-            noiseLutTexture.Identifier(), 
-            noiseLutMaterial, 
+        Blit(cmd,
+            new RenderTargetIdentifier(BuiltinRenderTextureType.None),
+            noiseLutTexture.Identifier(),
+            noiseLutMaterial,
             ditheringSettings.grainColored ? 1 : 0);
         
         cmd.SetGlobalTexture(_GrainTex, lutDestinationTarget);
@@ -179,6 +193,27 @@ public class DitheringPass : ScriptableRenderPass
         material.SetTexture(_PatternTex, patTex);
         material.SetVector(_Grain_Params1, new Vector2(ditheringSettings.grainLuminanceContribution, ditheringSettings.grainIntensity * 20f));
         material.SetVector(_Grain_Params2, new Vector4((float)opaqueDesc.width / (float)lutDesc.width / ditheringSettings.grainSize, (float)opaqueDesc.height / (float)lutDesc.height / ditheringSettings.grainSize, rndOffsetX, rndOffsetY));
+
+        // Global values and keywords travel inside this camera's command buffer. Two dithering cameras can render
+        // in the same frame (shot transitions) and share this pass's one material.
+        cmd.SetGlobalVector(_GrainScreenSize, new Vector4(opaqueDesc.width, opaqueDesc.height, 0, 0));
+
+        if (ditheringSettings.grainFollowsCamera)
+        {
+            Camera camera = renderingData.cameraData.camera;
+            Transform cameraTransform = camera.transform;
+            GrainOffsetTracker grainOffset = ditheringSettings.grainOffset;
+
+            grainOffset.Advance(cameraTransform.position, cameraTransform.rotation, camera.fieldOfView, opaqueDesc.height);
+
+            cmd.EnableShaderKeyword(GrainFollowsCameraKeyword);
+            cmd.SetGlobalVector(_GrainRotationOffset, grainOffset.rotationOffset);
+            cmd.SetGlobalVector(_GrainPositionOffsetAtOneMeter, grainOffset.positionOffsetAtOneMeter);
+        }
+        else
+        {
+            cmd.DisableShaderKeyword(GrainFollowsCameraKeyword);
+        }
 
         // Write over temporary color texture with noise material
         cmd.GetTemporaryRT(temporaryColorTexture.id, opaqueDesc, filterMode);
